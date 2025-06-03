@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>這「咖」哪裡吸引到你了</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+HK:wght@200..900&display=swap" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <link href="css/all.min.css" rel="stylesheet">
+    <style>
+        html,body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            width: 100%;
+            overflow-x: hidden;
+        }
+        .container-fluid {
+            padding: 0;
+            width: 100%;
+            max-width: none; /* 移除 Bootstrap 容器寬度限制 */
+        }
+        .tab-content {
+            padding: 15px;
+        }
+        .filter-container {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            width: 100%;
+        }
+        .filter-container label {
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .filter-container select {
+            padding: 5px;
+            font-size: 16px;
+            width: 100%;
+            max-width: 150px; /* 限制 select 寬度，適應小螢幕 */
+            box-sizing: border-box;
+        }
+        #cafe-list {
+            display: grid;
+            gap: 20px;
+        }
+        .cafe-item {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .cafe-item h4 {
+            margin: 0 0 10px;
+            color: #333;
+        }
+        .cafe-item p {
+            margin: 0;
+            color: #666;
+            line-height: 1.5;
+        }
+        .cafe-item iframe {
+            margin-top: 10px;
+            width: 100% !important; /* 覆蓋 inline 寬度 */
+            max-width: 100%;
+            height: 150px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            border: 0;
+        }
+        #location-tab-pane iframe {
+            width: 100% !important; /* 覆蓋 inline 寬度 */
+            max-width: 100%;
+            height: 300px; /* 適應手機 */
+            display: block;
+            margin: 0 auto;
+            border: 0;
+        }
+        .hidden {
+            display: none;
+        }
+        @media (max-width: 768px) {
+            .filter-container {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .filter-container select {
+                max-width: 100%; /* 手機上填滿寬度 */
+            }
+            .cafe-item {
+                padding: 10px;
+            }
+            .cafe-item iframe {
+                height: 120px; /* 手機上減小地圖高度 */
+            }
+            #location-tab-pane iframe {
+                height: 250px;
+            }
+        }
+        @media (min-width: 769px) {
+            .filter-container {
+                justify-content: flex-start;
+            }
+        }
+    
+        body {
+            background-color: #CCBEAC;
+            color: white;
+        }
+        .filter-container {
+            margin: 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        .filter-container label {
+            margin-right: 10px;
+        }
+        .filter-container select,
+        .filter-container button {
+            padding: 8px;
+            font-size: 14px;
+        }
+        .cafe-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background-color: #fff;
+            color: #333;
+            transition: transform 0.3s ease;
+        }
+        .cafe-item.hidden {
+            display: none;
+        }
+        .cafe-item:hover {
+            transform: scale(1.02);
+            border-color: #007bff;
+        }
+        .tab-content h2 {
+            color: #fff;
+        }
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .card {
+            transition: transform 0.3s ease;
+            cursor: pointer;
+            max-width: 50rem;
+        }
+        .card:hover {
+            transform: scale(1.05);
+            border-color: #ffffff;
+        }
+        /* 新增：確保第二頁籤的 cafe-item 樣式一致 */
+        #contact-tab-pane .cafe-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background-color: #fff;
+            color: #333;
+            transition: transform 0.3s ease;
+        }
+        #contact-tab-pane .cafe-item:hover {
+            transform: scale(1.02);
+            border-color: #007bff;
+        }
+        #contact-tab-pane .cafe-item h4 {
+            margin: 0 0 10px;
+            color: #333;
+        }
+        #contact-tab-pane .cafe-item p {
+            margin: 0;
+            color: #666;
+            line-height: 1.5;
+        }
+
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg" style="background-color: #BBA78F;">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.php"><img src="images/IMG_3834-Photoroom.png" alt="這咖哪裡吸引到你了"  style="width: 280px; height: auto; padding: 0px;"></a>
+           
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <form class="d-flex ms-auto" role="search">
+                    <!-- 搜索表單可根據需要添加 -->
+                </form>
+            </div>
+        </div>
+    </nav>
+    <div class="container my-5">
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="true">咖啡廳篩選器</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact-tab-pane" type="button" role="tab" aria-controls="contact-tab-pane" aria-selected="false">包含的咖啡廳</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="location-tab" data-bs-toggle="tab" data-bs-target="#location-tab-pane" type="button" role="tab" aria-controls="location-tab-pane" aria-selected="false">地圖</button>
+            </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active" id="profile-tab-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">
+                <h3>附近咖啡廳篩選器</h3>
+                <div class="filter-container">
+                    <label for="distance"><b>距離範圍:</b></label>
+                    <select id="distance">
+                        <option value="all">全部</option>
+                        <option value="1">1公里內</option>
+                        <option value="3">3公里內</option>
+                        <option value="5">5公里內</option>
+                    </select>
+                    <label for="type"><b>咖啡廳類型:</b></label>
+                    <select id="type">
+                        <option value="all">全部</option>
+                        <option value="old-house">老宅咖啡廳</option>
+                        <option value="modern">現代風</option>
+                        <option value="japanese">日式</option>
+                        <option value="cat">貓咪咖啡廳</option>
+                    </select>
+                    <label for="pet"><b>是否有寵物:</b></label>
+                    <select id="pet">
+                        <option value="all">全部</option>
+                        <option value="yes">有</option>
+                        <option value="no">無</option>
+                    </select>
+                    <label for="parking"><b>停車方便:</b></label>
+                    <select id="parking">
+                        <option value="all">全部</option>
+                        <option value="good">好</option>
+                        <option value="bad">不好</option>
+                    </select>
+                </div>
+                <!-- 咖啡廳列表 -->
+                <div class="cafe-item" data-lat="23.47438116293867" data-lng="120.43335396704519" data-type="modern" data-pet="yes" data-parking="bad">
+                    <h4>kakalovecafé</h4>
+                    <p>地址: 嘉義市西區博愛路二段421號<br>營業時間: 8:00~19:00, 10:00~18:00 | 有寵物: 有狗（在店外） | 出餐時間: 偏慢 | 停車: 不好 | 低消: 有 | <a href="https://kakalovecafe.com" target="_blank">連結</a></p>
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.6213138112257!2d120.43078977532751!3d23.47412037885991!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e969d70335bc1%3A0x8a747e26770960ef!2sKaKaLove%20Cafe!5e0!3m2!1szh-TW!2stw!4v1745309359727!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+                <div class="cafe-item" data-lat="23.476995726653673" data-lng="120.44769782417252" data-type="cat" data-pet="yes" data-parking="bad">
+                            <h4>INCOFFEE(貓咖)</h4>
+                            <p>地址: 嘉義市西區忠義街50號
+                            <br>營業時間: 13:00~01:00 | 有寵物: 有貓 | 出餐時間: 正常 | 停車: 不好 | 低消: 有 
+                            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.5445550873146!2d120.44511217532752!3d23.476887478858014!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e95e56d479093%3A0xdfb81b75903d13bd!2sIN%20COFFEE!5e0!3m2!1szh-TW!2stw!4v1745311225540!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                        </div>
+                            <div class="cafe-item" data-lat="23.47791725106604" data-lng="120.44698160883009" data-type="modern" data-pet="no" data-parking="good">
+                                <h4>小口品s</h4>
+                                <p>地址: 嘉義市西區光彩街453號
+                                <br>營業時間: 13:15~18:00, 星期日休息, 星期一休息 | 有寵物: 無 | 出餐時間: 慢 | 停車: 好(對面有停車場) | 低消: 有 
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.5210378103507!2d120.44443887604555!3d23.477735199188192!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e942fd586f82f%3A0x455e68a95e02c609!2z5bCP5Y-j5ZOBcw!5e0!3m2!1szh-TW!2stw!4v1745311389113!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.480458207003384" data-lng="120.44730226465204" data-type="modern" data-pet="no" data-parking="bad">
+                                <h4>蕨醒咖啡</h4>
+                                <p>地址: 嘉義市西區忠義街138號
+                                <br>營業時間: 08:00~16:00 | 有寵物: 無 | 出餐時間: 正常 | 停車: 不好 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.4502692305236!2d120.44481317604549!3d23.480285999091265!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e9431fd79a23d%3A0xd6ec62a3a47a3059!2z6JWo6YaS5ZKW5ZWh!5e0!3m2!1szh-TW!2stw!4v1745311509178!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.475319432224588" data-lng=" 120.4520308432141" data-type="modern" data-pet="no" data-parking="bad">
+                                <h4>聖塔咖啡</h4>
+                                <p>地址: 嘉義市東區興中街10號
+                                <br>營業時間: 星期一09:00~17:00, 星期二12:00~21:00, 星期三休息, 星期四12:00~21:00, 星期五12:00~21:00, 星期六12:00~21:00, 星期日12:00~21:00 | 有寵物: 無 | 出餐時間: 正常 | 停車: 不好 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.5924210661883!2d120.44925207532735!3d23.475161978859123!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e9430bcd21af9%3A0x26368ce6f008cd06!2z6IGW5aGU5ZKW5ZWh!5e0!3m2!1szh-TW!2stw!4v1745890318191!5m2!1szh-TW!2stw"width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.48061042590548" data-lng="120.45922745300852" data-type="old-house" data-pet="no" data-parking="good">
+                                <h4>花磚咖啡。淺嚐館</h4>
+                                <p>地址: 嘉義市東區公明路59-1號
+                                <br>營業時間: 10:00~18:00, 星期一休息 | 有寵物: 無(動物友善空間) | 出餐時間: 慢 | 停車: 好 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.4456363442014!2d120.45663107532775!3d23.480452978855524!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e944a78dd2991%3A0x7b93aa9b283eaa8f!2z6Iqx56Oa5ZKW5ZWh44CC5re65ZqQ6aSo!5e0!3m2!1szh-TW!2stw!4v1745890403348!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.48094354677424" data-lng="120.4518162953371" data-type="modern" data-pet="no" data-parking="good">
+                                <h4>藏.咖啡</h4>
+                                <p>地址: 嘉義市東區中山路233號
+                                <br>營業時間: 09:00~22:30 | 有寵物: 無 | 出餐時間: 快 | 停車: 好(汽車需要找) | 低消: 有<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.437212823009!2d120.44924137532757!3d23.48075657885532!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e9433e99ff80d%3A0x1d594e9c6a39756e!2z6JePLuWSluWVoSDlmInnvqnkuK3lsbHlupc!5e0!3m2!1szh-TW!2stw!4v1745890485929!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.472561940758244" data-lng="120.47489288184387" data-type="modern" data-pet="yes" data-parking="good">
+                                <h4>CHUCAFE</h4>
+                                <p>地址: 嘉義市東區小雅路36號
+                                <br>營業時間: 13:00~19:00, 星期一14:00~19:00, 星期四休息 | 有寵物: 有 | 出餐時間: 正常 | 停車: 好 | 低消: 有 
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d31788310.501402643!2d88.57552157921202!3d13.44886716803333!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e946daaaaaaab%3A0xbd60a2ae589ebe2d!2zQ0hVIENBRkUgKOeEoeioguS9jeOAgeeEoeaOpeW-heWFkuerpeOAgeeEoeaOpeW-heWcmOmrlDTkurrku6XkuIrvvIk!5e0!3m2!1szh-TW!2stw!4v1745890656279!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.488701616239624" data-lng="120.44693020698105" data-type="modern" data-pet="yes" data-parking="bad">
+                                <h4>明明MingMing</h4>
+                                <p>地址: 嘉義市西區文化路432巷1號1樓
+                                <br>營業時間: 13:00~18:00, 19:00~23:30, 星期四休息 | 有寵物: 有 | 出餐時間: 偏慢 | 停車: 不好 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.221107171176!2d120.44446257532783!3d23.48854417884991!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e95106354a399%3A0xc103f8fcf1fc372!2z5piO5piOTWluZ01pbmco5LyR5YGH5pel5pa8SUfjgIFGQuWwiOmggeeCuuS4u--8iQ!5e0!3m2!1szh-TW!2stw!4v1745890730886!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.48410286285908" data-lng="120.45326142417295" data-type="modern" data-pet="no" data-parking="bad">
+                                <h4>睦嶋咖啡IslandCoffee</h4>
+                                <p>地址: 嘉義市東區長榮街151號
+                                <br>營業時間: 星期一12:30~17:30, 星期二12:30~17:30, 星期三休息, 星期四休息, 星期五10:30~17:30, 星期六10:30~17:30, 星期日10:30~17:30 | 有寵物: 無 | 出餐時間: 正常 | 停車: 不好 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.3503690977673!2d120.45067577532785!3d23.483886378853125!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e959869b71319%3A0xf30703d669d926af!2z552m5baL5ZKW5ZWhIElzbGFuZCBDb2ZmZWU!5e0!3m2!1szh-TW!2stw!4v1745890779660!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.476710456482095" data-lng="120.45161076650146" data-type="modern" data-pet="no" data-parking="bad">
+                                <h4>她的咖啡HERCOFFEE</h4>
+                                <p>地址: 嘉義市東區興中街64號
+                                <br>營業時間: 14:00~01:00, 星期二休息 | 有寵物: 無 | 出餐時間: 快 | 停車: 不好 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.556017703357!2d120.44904657532749!3d23.47647427885826!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e953f82d28f49%3A0x39c0e594306f2d03!2z5aW555qE5ZKW5ZWhIEhFUiBDT0ZGRUU!5e0!3m2!1szh-TW!2stw!4v1745890847679!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.471031778505182" data-lng="120.45081356465172" data-type="modern" data-pet="yes" data-parking="bad">
+                                <h4>嚮日咖啡SunwardCoffee</h4>
+                                <p>地址: 嘉義市西區永安街55號
+                                <br>營業時間: 13:30~23:00, 星期五休息, 星期六休息, 星期日休息 | 有寵物: 有 | 出餐時間: 正常 | 停車: 不好 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.711620805203!2d120.44832447532731!3d23.470864478862023!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e95403781d6e1%3A0xb318e48488a2c382!2z5Zqu5pel5ZKW5ZWhIFN1bndhcmQgQ29mZmVl!5e0!3m2!1szh-TW!2stw!4v1745890934819!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.47687267109475" data-lng="120.44836609718655" data-type="japanese" data-pet="yes" data-parking="bad">
+                                <h4>嘉義–秘氏咖啡</h4>
+                                <p>地址: 嘉義市西區延平街288號
+                                <br>營業時間: 13:00~21:00, 星期二休息, 星期三休息 | 有寵物: 有 | 出餐時間: 正常 | 停車: 不好(哀居主頁有停車場地圖) | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.549606762227!2d120.44571607532757!3d23.476705378858096!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e94303dc8e8e1%3A0x8e8cc8cd09584e80!2z5ZiJ576pLeenmOawj-WSluWVoSjkvJHlgYfml6XoiIfoj5zllq7oq4vlj4PogINJRyk!5e0!3m2!1szh-TW!2stw!4v1745890986088!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.484252441207953" data-lng="120.44970835300848" data-type="modern" data-pet="yes" data-parking="bad">
+                                <h4>往前咖啡製作所</h4>
+                                <p>地址: 嘉義市東區興中街
+                                <br>營業時間: 09:00~21:00, 星期二休息 | 有寵物: 有 | 出餐時間: 正常 | 停車: 不好 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.344033945414!2d120.44711197532769!3d23.484114678852997!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e9432e6b4a153%3A0xed63b4573587582a!2z5b6A5YmN5ZKW5ZWh6KO95L2c5omAIC8gRm9yd2FyZCBSb2FzdGVycw!5e0!3m2!1szh-TW!2stw!4v1745891054986!5m2!1szh-TW!2stw"  width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.483361723831624" data-lng="120.44656458369363" data-type="modern" data-pet="no" data-parking="bad">
+                                <h4>FiveWoods五木咖啡</h4>
+                                <p>地址: 嘉義市西區林森西路193號
+                                <br>營業時間: 10:00~18:00, 星期三休息 | 有寵物: 無 | 出餐時間: 慢 | 停車: 不好 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.370661728611!2d120.44388237532772!3d23.483155078853592!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e942d9b630fa7%3A0xb25d476cec423f55!2zRml2ZSBXb29kcyDkupTmnKjlkpbllaE!5e0!3m2!1szh-TW!2stw!4v1745891106685!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.486094039282893" data-lng="120.45438718184425" data-type="old-house" data-pet="no" data-parking="normal">
+                                <h4>Morikoohii森咖啡</h4>
+                                <p>地址: 嘉義市東區共和路199巷1號
+                                <br>營業時間: 10:00~18:00 | 有寵物: 無 | 出餐時間: 正常 | 停車: 普通(檜意生活村) | 低消: 有 <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.2929288135238!2d120.45178007532778!3d23.485956278851656!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e95cb41fe5b75%3A0x33a6fb0782851c81!2zTW9yaWtvb2hpaSDmo64g5ZKW5ZWh!5e0!3m2!1szh-TW!2stw!4v1745891184981!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.483153103382225" data-lng="120.45294745485798" data-type="modern" data-pet="no" data-parking="bad">
+                                <h4>奇喚咖啡</h4>
+                                <p>地址: 嘉義市東區民權路254號
+                                <br>營業時間: 星期五、六12:00~00:00, 星期日12:00~18:00, 星期一12:00~18:00, 星期二12:00~18:00, 星期三12:00~18:00, 星期四休息 | 有寵物: 無 | 出餐時間: 正常 | 停車: 不好 | 低消: 有<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.3756314315033!2d120.45027597532774!3d23.48297597885371!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e97a469eb6b93%3A0x39f6fb01024d40a2!2z5aWH5Zaa5ZKW5ZWh77yI5LyR5YGH5pel6KuL5Y-D6ZaxaWfjgIHoh4nmm7jvvIk!5e0!3m2!1szh-TW!2stw!4v1745891215709!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.47832489421317" data-lng="120.45490839533716" data-type="japanese" data-pet="no" data-parking="bad">
+                                <h4>木商珈琲</h4>
+                                <p>地址: 嘉義市東區蘭井街78號
+                                <br>營業時間: 11:00~17:30, 星期四、五休息 | 有寵物: 無 | 出餐時間: 正常 | 停車: 不好 | 低消: 有 <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.511503293906!2d120.4523334753274!3d23.478078878857012!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e95ed2da139b5%3A0x2423b8f0ed5f2f94!2z5pyo5ZWG54-I55Cy!5e0!3m2!1szh-TW!2stw!4v1745891302157!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.48071112798658" data-lng="120.45195993766592" data-type="modern" data-pet="no" data-parking="bad">
+                                <h4>木更MUGENERATION</h4>
+                                <p>地址: 嘉義市東區成仁街189號
+                                <br>營業時間: 10:00~18:00, 12:30~17:30, 星期四休息, 星期五休息 | 有寵物: 無 | 出餐時間: 偏慢 | 停車: 不好 | 低消: 有 <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.444207460326!2d120.44940647532772!3d23.480504478855494!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e94368ad752a1%3A0x44af0f6b62ae71a1!2z5pyo5pu0IE1VR0VORVJBVElPTg!5e0!3m2!1szh-TW!2stw!4v1745891340028!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.47174938870831" data-lng="120.45223766650122" data-type="modern" data-pet="yes" data-parking="bad">
+                                <h4>ArchersKitchen弓箭手</h4>
+                                <p>地址: 嘉義市西區永安街13巷2號
+                                <br>營業時間: 09:00~17:00, 星期二休息, 星期三休息 | 有寵物: 有 | 出餐時間: 正常 | 停車: 不好 | 低消: 有
+                                 <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.6944473269987!2d120.44967347532734!3d23.471483678861663!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e942e656586af%3A0x9551eaab67acebd4!2zQXJjaGVycyBLaXRjaGVuIOW8k-eureaJiw!5e0!3m2!1szh-TW!2stw!4v1745891378813!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.48106985077055" data-lng="120.45087256650156" data-type="modern" data-pet="no" data-parking="bad">
+                                <h4>餘生咖啡館</h4>
+                                <p>地址: 嘉義市東區興中街145號
+                                <br>營業時間: 09:00~18:00, 星期二休息, 星期三09:00~18:30 | 有寵物: 無 | 出餐時間: 正常 | 停車: 不好 | 低消: 有 
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.436438719564!2d120.44830837532758!3d23.480784478855238!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e95a393da5207%3A0x55ad227417543358!2z6aSY55Sf5ZKW5ZWh6aSo!5e0!3m2!1szh-TW!2stw!4v1745891472305!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.47998813160927" data-lng="120.4513590376658" data-type="modern" data-pet="no" data-parking="bad">
+                                <h4>巴倫斯康BaronScones</h4>
+                                <p>地址: 嘉義市東區公明路297號
+                                <br>營業時間: 12:00~19:00 | 有寵物: 無 | 出餐時間: 快 | 停車: 不好 | 低消: 有
+                                 <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.465632084669!2d120.44880557532763!3d23.479732278855998!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e95fe3c687503%3A0x74af58934dde0429!2z5be05YCr5Y-45bq3IEJhcm9uIFNjb25lcw!5e0!3m2!1szh-TW!2stw!4v1745891604387!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.480297166749274" data-lng="120.46702634136481" data-type="old-house" data-pet="no" data-parking="bad">
+                                <h4>荏苒咖啡</h4>
+                                <p>地址: 嘉義市東區公園路97號
+                                <br>營業時間: 09:00~17:00, 星期三休息, 星期四休息 | 有寵物: 無 | 出餐時間: 正常 | 停車: 不好(附近是公園) | 低消: 有 <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.4546007889753!2d120.46432267532764!3d23.48012987885575!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e95caa1ae94e5%3A0x6b9abc0fb6f7b684!2z6I2P6IuS5ZKW5ZWh!5e0!3m2!1szh-TW!2stw!4v1745891713004!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.46686841558308" data-lng="120.44446801067933" data-type="modern" data-pet="no" data-parking="good">
+                                <h4>仨丘珈琲</h4>
+                                <p>地址: 嘉義市西區杭州三街45號
+                                <br>營業時間: 09:00~17:00, 星期一休息, 星期二休息 | 有寵物: 無 | 出餐時間: 正常 | 停車: 好(旁邊有停車場) | 低消: 有<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.829263722156!2d120.44185017532726!3d23.46662237886506!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e951aa61109b5%3A0x154dc40cb117cc29!2z5Luo5LiY54-I55CyIFNhY2h1dSBjYWZl!5e0!3m2!1szh-TW!2stw!4v1745891750167!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.47743669243283" data-lng="120.44070421067968" data-type="old-house" data-pet="no" data-parking="good">
+                                <h4>昭和J11咖啡館</h4>
+                                <p>地址: 嘉義市西區廣寧街101號
+                                <br>營業時間: 10:00~18:30, 星期一休息 | 有寵物: 無 | 出餐時間: 正常 | 停車: 好(對面舊酒廠酒停車位) | 低消: 有 
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.5347789788198!2d120.43808637532752!3d23.47723987885779!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e95059fe03e03%3A0xe879ead10ccfeecb!2z5pit5ZKMSjEx5ZKW5ZWh6aSo!5e0!3m2!1szh-TW!2stw!4v1745891781648!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.481706130142364" data-lng="120.45173832417291" data-type="modern" data-pet="no" data-parking="bad">
+                                <h4>HERMIT&CO.</h4>
+                                <p>地址: 嘉義市東區成仁街209號
+                                <br>營業時間: 11:00~18:00, 星期四休息 | 有寵物: 無 | 出餐時間: 正常 | 停車: 不好 | 低消: 有(低消400)
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.419194016966!2d120.44915267478393!3d23.481405999051038!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e950e9ed87071%3A0x6a02dc8c0c659d9b!2sHERMIT%20%26%20Co.!5e0!3m2!1szh-TW!2stw!4v1746811270274!5m2!1szh-TW!2stw"width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.47612412464064" data-lng="120.44336315115885" data-type="modern" data-pet="no" data-parking="good">
+                                <h4>咖啡一派THECOFFEEFOLKS</h4>
+                                <p>地址: 嘉義市西區西門街152號
+                                <br>營業時間: 11:00~18:00, 星期二休息 | 有寵物: 無 | 出餐時間: 正常 | 停車: 好(附近有停車場) | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.574603259293!2d120.44084187478371!3d23.475804299263924!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e95331dbb958b%3A0xea986b3b60e1d712!2z5ZKW5ZWh5LiA5rS-IHRoZSBjb2ZmZWUgZm9sa3M!5e0!3m2!1szh-TW!2stw!4v1746812214770!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.474209215398734" data-lng="120.45996353951514" data-type="old-house" data-pet="no" data-parking="bad">
+                                <h4>AMON咖啡所</h4>
+                                <p>地址: 嘉義市東區市宅街22巷5弄5號
+                                <br>營業時間: 10:00~17:00, 星期一休息, 星期二休息 | 有寵物: 無 | 出餐時間: 正常 | 停車: 不好 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.6236266078968!2d120.45733497478362!3d23.474036999331037!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e94481cd4f8a1%3A0xec4c035c0d1dfd50!2zQU1PTuWSluWVoeaJgA!5e0!3m2!1szh-TW!2stw!4v1746812331056!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.47000432104672" data-lng="120.45853592417247" data-type="modern" data-pet="yes" data-parking="bad">
+                                <h4>玖CAFÉ</h4>
+                                <p>地址: 嘉義市東區興業東路387號
+                                <br>營業時間: 13:00~22:00, 星期四休息, 星期五休息 | 有寵物: 無(寵物友善空間) | 出餐時間: 正常 | 停車: 不好 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.740252840325!2d120.45595027478349!3d23.469832099490755!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e9438838d001b%3A0x91ff993ffeee3f69!2z546WQ0FGw4k!5e0!3m2!1szh-TW!2stw!4v1746812417408!5m2!1szh-TW!2stw"  width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.48715421788584" data-lng="120.45643387814529" data-type="modern" data-pet="no" data-parking="bad">
+                                <h4>正方芳Café</h4>
+                                <p>地址: 嘉義市東區林森東路103號
+                                <br>>營業時間: 10:30~18:00, 星期日11:30~18:00 | 有寵物: 無 | 出餐時間: 正常 | 停車: 不好
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.265281737239!2d120.453976974784!3d23.486952498840285!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e9553d69ad68f%3A0xfccfc8af5d677928!2z5q2j5pa56IqzQ2FmZQ!5e0!3m2!1szh-TW!2stw!4v1746812503531!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.487485277430565" data-lng="120.45501788184417" data-type="modern" data-pet="no" data-parking="bad">
+                                <h4>Evie'sCafé伊米咖啡</h4>
+                                <p>地址: 嘉義市東區共和路418號
+                                <br>>營業時間: 12:00~18:00, 星期六09:00~18:00, 星期日09:00~18:00, 星期四休息 | 有寵物: 無 | 出餐時間: 正常 | 停車: 不好 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.255820833879!2d120.45241077478394!3d23.487293398827394!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e9430b14f631d%3A0x5148259d6f6cc44c!2zRXZpZSdzIENhZmUnIOS8iuexs-WSluWVoQ!5e0!3m2!1szh-TW!2stw!4v1746812646023!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.47611880893005" data-lng="120.43888545300824" data-type="modern" data-pet="no" data-parking="good">
+                                <h4>國王蝴蝶咖啡Roicafe</h4>
+                                <p>地址: 嘉義市西區中山路616號F棟2樓(舊酒廠內)
+                                <br>營業時間: 10:00~18:00, 星期一休息, 星期二休息 | 有寵物: 無 | 出餐時間: 正常 | 停車: 有(附近有停車場) | 低消: 有 
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.5692910085354!2d120.43628907478364!3d23.475995799256573!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e9532a303a311%3A0x86b7b6e8a6ab6023!2z5ZyL546L6J206J225ZKW5ZWhIFJvaWNhZmU!5e0!3m2!1szh-TW!2stw!4v1746812745849!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.482242923147396" data-lng="120.46011979533725" data-type="cat" data-pet="yes" data-parking="good">
+                                <h4>貓咪文創咖啡館</h4>
+                                <p>地址: 嘉義市東區中山路43號
+                                <br>>營業時間: 12:00~21:00, 星期二休息, 星期三休息 | 有寵物: 有 | 出餐時間: 偏慢 | 停車: 有(路邊停車格) | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1829.6976788458467!2d120.45885379273186!3d23.48226506384844!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e957b98ff3e19%3A0x86b27271a2d9a633!2z5Za15ZKq5paH5Ym15ZKW5ZWh6aSo77yI54Sh5o6l5b6FMH425q2y5bCP5a2p77yJ5pyA5b6M5pS25a6i5pmC6ZaTMjDvvJowMA!5e0!3m2!1szh-TW!2stw!4v1746813087406!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            </div>
+                            <div class="cafe-item" data-lat="23.483956944521523" data-lng="120.44996131067988" data-type="modern" data-pet="yes" data-parking="bad">
+                                <h4>MIMICOCOFFEE秘密客咖啡館</h4>
+                                <p>地址: 嘉義市東區興中街200號
+                                <br>營業時間: 星期一~三、五11:00~19:30, 星期四休息, 星期六10:00~19:30, 星期日10:00~18:00 | 有寵物: 無 | 出餐時間: 正常 | 停車: 不好 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.3561930546957!2d120.44734347478398!3d23.48367649896486!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e9426988bd085%3A0x25e91aa04e8f083e!2zTUlNSUNPIENPRkZFRSDnp5jlr4blrqLlkpbllaHppKg!5e0!3m2!1szh-TW!2stw!4v1747045351778!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.480118452829778" data-lng="120.48193782417277" data-type="modern" data-pet="no" data-parking="good">
+                                <h4>迦南地</h4>
+                                <br>營業時間: 13:00~19:00, 星期四休息 | 有寵物: 無 | 出餐時間: 正常 | 停車: 好 | 低消: 有
+                               <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.4626989243257!2d120.47935217478378!3d23.479837999110675!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e95aabbe29341%3A0x6b91ae6857806a39!2z6L-m5Y2X5ZywL-WYiee-qeWSluWVoeW7sy_lmInnvqnkuIvljYjojLYv5ZiJ576p5aSc5pmv6aSQ5buzL-WYiee-qeeUnOm7ni_lmInnvqnluq3lnJLlkpbllaEv5ZiJ576p576O6aOf!5e0!3m2!1szh-TW!2stw!4v1747045297698!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.47800970709499" data-lng="120.44873529533689" data-type="modern" data-pet="no" data-parking="bad">
+                                <h4>霜空珈琲</h4>
+                                <p>地址: 嘉義市西區國華街132號
+                                <br>營業時間: 星期二~四12:00–18:00, 星期五、星期六休息, 星期日休息, 星期一休息 | 有寵物: 無 | 出餐時間: 快 | 停車: 不好 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.5168348453158!2d120.44616037478356!3d23.477886699184744!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e955a183f2a91%3A0x4f3244281f5ee92e!2z6Zyc56m654-I55Cy!5e0!3m2!1szh-TW!2stw!4v1747045170913!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.489237552528184" data-lng="120.45354311067995" data-type="modern" data-pet="no" data-parking="bad">
+                                <h4>常常</h4>
+                                <p>地址: 嘉義市東區忠孝路344號
+                                <br>營業時間: 星期四~六13:00~18:00, 星期日休息, 星期一休息, 星期二休息, 星期三休息 | 有寵物: 無 | 出餐時間: 正常 | 停車: 附近有付費停車場 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.2104655346225!2d120.45092527478405!3d23.48892759876525!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e95cb8cc51a07%3A0x5d19cc86a3b50c7d!2z5bi45bi4!5e0!3m2!1szh-TW!2stw!4v1747044833556!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.476779471212982" data-lng="120.45251531067964" data-type="modern" data-pet="yes" data-parking="bad">
+                                <h4>Liaison栗葉</h4>
+                                <p>地址: 嘉義市東區成仁街65號 | 營業時間: 11:00~17:30, 星期一休息, 星期二休息 | 有寵物: 有 | 出餐時間: 偏慢 | 停車: 不好 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.5520557328127!2d120.44989747478375!3d23.476617099232946!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e956530e651e9%3A0xabf4f6dcfb7288a8!2zTGlhaXNvbuagl-iRiSjnh5_mpa3os4foqIroq4vku6VJR-WFrOWRiueCuuS4uyk!5e0!3m2!1szh-TW!2stw!4v1747044788102!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.473263693685762" data-lng="120.4441048799945" data-type="modern" data-pet="no" data-parking="good">
+                                <h4>SENSMO咖啡感獸</h4>
+                                <p>地址: 嘉義市西區垂楊路429號
+                                <br>營業時間: 08:00~18:00, 星期四休息 | 有寵物: 無 | 出餐時間: 正常 | 停車: 附近有付費停車場 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.64903427273!2d120.44157287478373!3d23.47312099936588!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e9504eddf9a7d%3A0xd0a9d5d9222f976b!2zU0VOU01P5ZKW5ZWh5oSf5424!5e0!3m2!1szh-TW!2stw!4v1747031477813!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.505644821530204" data-lng="120.44449963207234" data-type="modern" data-pet="no" data-parking="good">
+                                <h4>初禾甜點．咖啡- 回嘉店</h4>
+                                <p>地址: 嘉義市西區民生南路137號 | 營業時間: 11:00~18:30 | 有寵物: 無 | 出餐時間: 快 | 停車: 對面有付費停車場 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d467576.0935898429!2d120.18082776741119!3d23.71389974912389!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e9424aad72081%3A0xac0b921a2fb8c6d!2z5Yid56a-55Sc6bue77yO5ZKW5ZWhIC0g5Zue5ZiJ5bqX!5e0!3m2!1szh-TW!2stw!4v1747031407172!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.473035916974847" data-lng="120.45464203581622" data-type="japanese" data-pet="no" data-parking="bad">
+                                <h4>堀川茶事</h4>
+                                <p>地址: 嘉義市東區吳鳳南路37巷15號
+                                <br>營業時間: 13:00~19:00, 星期一休息, 星期二休息 | 有寵物: 無 | 出餐時間: 正常 | 停車: 不好 | 低消: 有
+                                 <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.6561709954885!2d120.45216367478365!3d23.472863699375644!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e957dd752db7d%3A0xba9a27fb58d412d1!2z5aCA5bed6Iy25LqL!5e0!3m2!1szh-TW!2stw!4v1747031297510!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.472893935120865" data-lng="120.44902395300828" data-type="modern" data-pet="yes" data-parking="good">
+                                <h4>Mug-up美國時間</h4>
+                                <p>地址: 嘉義市西區成功東街2號
+                                <br>營業時間: 11:00~19:00, 星期六11:00~21:00, 星期日11:00~21:00 | 有寵物: 寵物友善 | 出餐時間: 偏慢 | 停車: 機車好停車, 汽車附近也不難找到停車位 | 低消: 有
+                               <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.6595632012145!2d120.44642757478367!3d23.47274139938024!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e950028239c99%3A0x9dcdd8593d985d55!2zTXVnLXVwIOe-juWci-aZgumWkw!5e0!3m2!1szh-TW!2stw!4v1747031217748!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.478732696424824" data-lng="120.44846686650149" data-type="modern" data-pet="yes" data-parking="bad">
+                                <h4>桂桂子Keiko</h4>
+                                <p>地址: 嘉義市西區國華街227號
+                                <br>營業時間: 12:00~20:00, 星期四休息 | 有寵物: 寵物友善 | 出餐時間: 正常 | 停車: 門口有些許機車停車位 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.5014182062428!2d120.44590267478381!3d23.478442399163683!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e95fa30bbb325%3A0xa41c84e709899351!2z5qGC5qGC5a2QS2Vpa28g5ZKW5ZWhL-iCieahguaNsi_pub3lj6_poIwv6LKd5p6c77yI6Ieq5a626bq15YyF772c5a-154mp5Y-L5ZaE772c55W25pyI5LyR5YGH5pyD5YWs5L2ISWfvvZzlpoLmnInoh6jmmYLnlbDli5VHb29nbGUgbWFw5pyD5ZCM5q2l5pu05q2j77yJ!5e0!3m2!1szh-TW!2stw!4v1747031129935!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.48376998088334" data-lng="120.44992912417297" data-type="modern" data-pet="yes" data-parking="bad">
+                                <h4>MIMICOCOFFEE秘密客咖啡館</h4>
+                                <p>地址: 嘉義市東區興中街200號
+                                <br>營業時間: 11:00~19:30, 星期四休息, 星期日10:00~18:00 | 有寵物: 寵物友善 | 出餐時間: 正常 | 停車: 機車好停車, 汽車不好停車 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.356193054696!2d120.44734347478399!3d23.483676498964858!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e9426988bd085%3A0x25e91aa04e8f083e!2zTUlNSUNPIENPRkZFRSDnp5jlr4blrqLlkpbllaHppKg!5e0!3m2!1szh-TW!2stw!4v1747031032776!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.477713810690684" data-lng="120.45234888184403" data-type="modern" data-pet="no" data-parking="bad">
+                                <h4>suicafe隧咖啡</h4>
+                                <p>地址: 嘉義市東區成仁街111號
+                                <br>營業時間: 11:00~19:00, 星期二11:00~17:00, 星期一休息 | 有寵物: 無 | 出餐時間: 正常 | 停車: 機車可以停店門口, 汽車不好停車 | 低消: 平日無低消, 假日有低消
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.5264086906586!2d120.4497417747838!3d23.477541599197913!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e95500f5d0d77%3A0xefebe376428c75e4!2zc3VpY2FmZemap-WSluWVoQ!5e0!3m2!1szh-TW!2stw!4v1747030935256!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            </div>
+                            <div class="cafe-item" data-lat="23.469527940880468" data-lng="120.45539746650121" data-type="modern" data-pet="yes" data-parking="good">
+                                <h4>甜茶小姐</h4>
+                                <p>地址: 嘉義市東區興業東路50號
+                                <br>營業時間: 11:00~20:00, 星期四休息 | 有寵物: 寵物友善 | 出餐時間: 正常 | 停車: 附近有停車場 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.757558295037!2d120.4528332747835!3d23.469208099514457!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e95582c5d9ceb%3A0xbe62916334b998a6!2z55Sc6Iy25bCP5aeQ!5e0!3m2!1szh-TW!2stw!4v1747030860994!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.473599829442502" data-lng="120.4735487953369" data-type="modern" data-pet="no" data-parking="good">
+                                <h4>翡冷翠咖啡(FIORENZACOFFEE)</h4>
+                                <p>地址: 嘉義市東區小雅路203號
+                                <br>營業時間: 12:00~18:00, 星期二休息, 星期三休息 | 有寵物: 無 | 出餐時間: 正常 | 停車: 好 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.6386189075356!2d120.47097387478357!3d23.473496499351597!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e9583871f120d%3A0x308c49aed11bf22f!2z57-h5Ya357-g5ZKW5ZWhKEZJT1JFTlpBIENPRkZFRSk!5e0!3m2!1szh-TW!2stw!4v1747030752212!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.469676410346203" data-lng="120.45724087814482" data-type="modern" data-pet="no" data-parking="bad">
+                                <h4>曉咖啡InChiayi</h4>
+                                <p>地址: 嘉義市東區興業東路138號
+                                <br>營業時間: 14:00~22:00, 星期三休息 | 有寵物: 無 | 出餐時間: 正常 | 停車: 不好 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.751257384857!2d120.45478397478352!3d23.46943529950578!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e951980cc5ef7%3A0x48ffd74ffd5d617a!2z5puJ5ZKW5ZWhIEluIENoaWF5aQ!5e0!3m2!1szh-TW!2stw!4v1747030664819!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.485046121190933" data-lng="120.43693073951563" data-type="modern" data-pet="no" data-parking="good">
+                                <h4>西南一隅-SouthwestStudio</h4>
+                                <p>地址: 嘉義市西區友竹街87號1樓
+                                <br>營業時間: 13:00~19:00, 星期二休息, 星期五13:00~22:00, 星期六13:00~22:00 | 有寵物: 無 | 出餐時間: 正常 | 停車: 好 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.3237843757324!2d120.43430217478411!3d23.484844398920384!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e955dae1b4c49%3A0x15a27e470f54f0de!2z6KW_5Y2X5LiA6ZqFLVNvdXRod2VzdCBTdHVkaW8!5e0!3m2!1szh-TW!2stw!4v1747030582152!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.477098752226734" data-lng="120.4427620665014" data-type="japanese" data-pet="no" data-parking="good">
+                                <h4>露室茶館</h4>
+                                <p>地址: 嘉義市西區蘭井街346號
+                                <br>營業時間: 12:30~20:00, 星期三休息 | 有寵物: 無 | 出餐時間: 偏慢 | 停車: 對面是付費停車場 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.543744475538!2d120.4401978747837!3d23.476916699221622!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e950004b9b527%3A0xc56ffe7e64c3a933!2z6Zyy5a6k6Iy26aSo77yI6Zi_6YeM5bGx6Iy26L6y56ysM-S7o-OAguWFrOS8keaXpeWPg-iAg0luc3RhZ3JhbSDllpQg44CC5Lmf5pyJ5ZCD6aOf44CB55Sc6bue44CC77yJ5YWn55So5L2O5raIOuavjzHkurrpg73pnIDku6Xllp3nmoTngrrkuLvjgILwn6SX!5e0!3m2!1szh-TW!2stw!4v1747030493795!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.478140832015267" data-lng="120.45394361067969" data-type="modern" data-pet="yes" data-parking="bad">
+                                <h4>兩顆蛋甜點EggEggDessert</h4>
+                                <p>地址: 嘉義市東區蘭井街108號
+                                <br>營業時間: 13:30~18:30, 星期一休息, 星期二休息, 星期三休息 | 有寵物: 有(寵物友善) | 出餐時間: 正常 | 停車: 不好 | 低消: 有(120公分以上)
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.5153811405844!2d120.4513257747838!3d23.477939099182795!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e95437ae635b3%3A0xd978307c5c8c6ea7!2z5YWpIOmhhuibi-eUnOm7nkVnZyBFZ2cgRGVzc2VydA!5e0!3m2!1szh-TW!2stw!4v1747030386409!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.483262984999172" data-lng="120.44867239348783" data-type="old-house" data-pet="yes" data-parking="bad">
+                                <h4>花磚咖啡。淺花樓</h4>
+                                <p>地址: 嘉義市西區文化路255號2F
+                                <br>營業時間: 10:30~18:30, 星期三休息 | 有寵物: 寵物友善 | 出餐時間: 偏慢 | 停車: 不好 | 低消: 12歲以上有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.3743572337235!2d120.44617257478396!3d23.483021898989723!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e9500372b3c9f%3A0xd80cb41d0fd46ecb!2z6Iqx56Oa5ZKW5ZWh44CC5re66Iqx5qiT!5e0!3m2!1szh-TW!2stw!4v1747030243136!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.48197332600813" data-lng="120.46003035115896" data-type="modern" data-pet="no" data-parking="bad">
+                                <h4>貳陸陸杉Space</h4>
+                                <p>地址: 嘉義市東區民國路182號 | 營業時間: 10:00~20:00 | 有寵物: 無 | 出餐時間: 正常 | 停車: 不好 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.409049876692!2d120.45750907478383!3d23.48177159903726!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e9562ef0a1e29%3A0x306e8240261a71f9!2z6LKz6Zm46Zm45p2JU3BhY2Ug772c5paw5Z2A6ZaL5bmV772c!5e0!3m2!1szh-TW!2stw!4v1747029968077!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.475498036157155" data-lng="120.44988356650143" data-type="modern" data-pet="yes" data-parking="bad">
+                                <h4>Ookami狼咖啡</h4>
+                                <p>地址: 嘉義市西區文化路17-15號
+                                <br>營業時間: 10:00~21:00, 星期一休息 | 有寵物: 寵物友善 | 出餐時間: 正常 | 停車: 走出去一點有停車格 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.5886950893537!2d120.44731937478375!3d23.475296299283187!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e9594059fd57f%3A0xd4900d9ea2bf6286!2zT29rYW1p54u85ZKW5ZWh!5e0!3m2!1szh-TW!2stw!4v1747029196189!5m2!1szh-TW!2stw"  width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.474405765192337" data-lng="120.43333250883008" data-type="modern" data-pet="yes" data-parking="bad">
+                                <h4>KaKaLoveCafé</h4>
+                                <p>地址: 嘉義市西區博愛路二段421號
+                                <br>營業時間: 08:00~19:00, 星期六08:00~18:00, 星期日08:00~18:00 | 有寵物: 有 | 出餐時間: 正常 | 停車: 門口可以停車但位子不多 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.6211773261452!2d120.43078977478366!3d23.474125299327703!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e969d70335bc1%3A0x8a747e26770960ef!2sKaKaLove%20Cafe!5e0!3m2!1szh-TW!2stw!4v1747029116059!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.477097252228862" data-lng="120.45232950883016" data-type="modern" data-pet="yes" data-parking="bad">
+                                <h4>ONCEMORE摘杯茶飲</h4>
+                                <p>地址: 嘉義市東區延平街191號
+                                <br>營業時間: 10:00~21:00, 星期二休息 | 有寵物: 有 | 出餐時間: 正常 | 停車: 機車好停車, 汽車不方便 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.543786087556!2d120.44978677478373!3d23.47691519922168!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e950026632ab3%3A0x4980919760fa71ef!2zT05DRU1PUkUg5pGY5p2v6Iy26aOy!5e0!3m2!1szh-TW!2stw!4v1747028946173!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.47686652135978" data-lng="120.44296833820962" data-type="modern" data-pet="no" data-parking="bad">
+                                <h4>山腳甜食</h4>
+                                <p>地址: 嘉義市西區蘭井街431號
+                                <br>營業時間: 11:00~18:00, 星期二休息 | 有寵物: 無 | 出餐時間: 正常 | 停車: 不好 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.546091954436!2d120.44041487532758!3d23.476832078857992!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e95e7a99ba01d%3A0x1ab553da5fbd5c6!2z5bGx6IWz55Sc6aOfIO-8iOeEoeioguS9je-8ieKUiuWYiee-qeeUnOm7niB8IOiAgeWxiw!5e0!3m2!1szh-TW!2stw!4v1747028904092!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.480125507450442" data-lng="120.45166909718661" data-type="modern" data-pet="yes" data-parking="bad">
+                                <h4>岬島JiaDaò</h4>
+                                <p>地址: 嘉義市東區公明路372-1號1樓
+                                <br>營業時間: 09:30~18:00, 星期二休息 | 有寵物: 寵物友善 | 出餐時間: 正常 | 停車: 機車好停車, 汽車不方便 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.4594999642263!2d120.4490190747838!3d23.479953299106302!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e9580f070011d%3A0xc3a99e2c0cd0a54!2z5bKs5bO2IEppYSBEYcOy!5e0!3m2!1szh-TW!2stw!4v1746815094149!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.48131044428333" data-lng="120.48791963766593" data-type="modern" data-pet="yes" data-parking="good">
+                                <h4>洛澄-茶品店A8店鋪</h4>
+                                <p>地址: 嘉義市東區大雅路一段730號A8店鋪
+                                <br>營業時間: 12:30~17:30, 星期六11:00~17:30, 星期日11:00~17:30 | 有寵物: 有 | 出餐時間: 偏慢 | 停車: 附近白線內皆可停車 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.4255312543623!2d120.48536617478385!3d23.48117759905973!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e950ed9f74375%3A0x1718ed9bf15b0012!2z5rSb5r6ELeiyk-WSquiMtuWTgeW6lyDvvIjkuI3lrprmmYLlhazkvJEu5LulSUfoh4nmm7jlhazlkYrngrrkuLvvvIk!5e0!3m2!1szh-TW!2stw!4v1746814445931!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.474485015028467" data-lng="120.45722799533702" data-type="modern" data-pet="no" data-parking="good">
+                                <h4>LesAmiscafé樂瑞比咖啡</h4>
+                                <p>地址: 嘉義市東區垂楊路147號
+                                <br>營業時間: 11:00~17:00, 星期五休息 | 有寵物: 無 | 出餐時間: 正常 | 停車: 門口有機車停車格, 附近路邊也有停車格 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.615703416182!2d120.45465307478368!3d23.474322640224408!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e955a3ab6bbcd%3A0x4178b91154165715!2zTGVzIEFtaXMgY2Fmw6kg5qiC55Ge5q-U5ZKW5ZWh77yI5YWs5LyR5pel5pa8SWcvRmLlhazlkYrvvIk!5e0!3m2!1szh-TW!2stw!4v1746814281969!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.47765375143974" data-lng="120.45243713581628" data-type="modern" data-pet="yes" data-parking="bad">
+                                <h4>二屾 Ershen</h4>
+                                <p>地址: 嘉義市東區成仁街70號
+                                <br>營業時間: 12:00~19:00 | 有寵物: 無(寵物友善) | 出餐時間: 正常 | 停車: 不好 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.528347856726!2d120.44995877478371!3d23.477471699200564!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e959155101ac1%3A0x2d06e42dc1ad1181!2z5LqM5bG-IEVyc2hlbg!5e0!3m2!1szh-TW!2stw!4v1746814209729!5m2!1szh-TW!2stw"  width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.473068675921173" data-lng="120.4449585511588" data-type="modern" data-pet="no" data-parking="good">
+                                <h4>內海uchiumi</h4>
+                                <p>地址: 嘉義市西區新榮路34巷1號2樓
+                                <br>>營業時間: 13:00~18:00 | 有寵物: 無 | 出餐時間: 正常 | 停車: 附近有付費停車場 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.6549894056056!2d120.44243727478367!3d23.472906299374014!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e95854a776d4b%3A0x87713421c4dc0949!2z5YWn5rW3dWNoaXVtaQ!5e0!3m2!1szh-TW!2stw!4v1746814035392!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.485669321685286" data-lng="120.44742959020584" data-type="modern" data-pet="no" data-parking="good">
+                                <h4>日日咖啡Dailycafé</h4>
+                                <p>地址: 嘉義市西區國華街322-13號
+                                <br>營業時間: 09:00~17:00, 星期六09:00~18:00, 星期日09:00~18:00 | 有寵物: 無 | 出餐時間: 正常 | 停車: 對面有付費停車場 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.3078555562674!2d120.44724719999999!3d23.4854184!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e959d40a61bc9%3A0x9434cedffac257a!2z5pel5pel5ZKW5ZWhRGFpbHljYWbDqQ!5e0!3m2!1szh-TW!2stw!4v1746813975239!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item"data-lat="23.470875690468326" data-lng="120.44732933766556" data-type="modern" data-pet="yes" data-parking="good">
+                                <h4>民生咖啡嘉義</h4>
+                                <p>地址: 嘉義市西區民生南路127號
+                                <br>>營業時間: 10:00~21:00, 星期一12:00~21:00, 星期二09:00~21:00, 星期三09:00~21:00, 星期四12:00~21:00, 星期五12:00~21:00 | 有寵物: 有 | 出餐時間: 偏慢 | 停車: 對面有停車場 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.71854275541!2d120.44477587478352!3d23.47061489946102!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e95eb573fc2e3%3A0x3445e91fb567406e!2z5rCR55Sf5ZKW5ZWh5ZiJ576p!5e0!3m2!1szh-TW!2stw!4v1746813772461!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.481876027945756" data-lng="120.45870282417282" data-type="modern" data-pet="no" data-parking="good">
+                                <h4>Daisy的雜貨店</h4>
+                                <p>地址: 嘉義市東區維新路73號
+                                <br>>營業時間: 13:00~19:00, 星期三13:00~18:30, 星期四休息 | 有寵物: 無 | 出餐時間: 正常 | 停車: 門口有機車停車格, 附近路邊也有停車格 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.4131147647972!2d120.45611717478383!3d23.481625099042727!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e95ca88b4e6f7%3A0xf481c57c8f57b9aa!2zRGFpc3nnmoTpm5zosqjlupc!5e0!3m2!1szh-TW!2stw!4v1746813628629!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.48137648851937" data-lng="120.45268617999479" data-type="modern" data-pet="no" data-parking="good">
+                                <h4>秘書店Meetstore</h4>
+                                <p>地址: 嘉義市東區中山路201號3樓
+                                <br>營業時間: 09:00~22:00 | 有寵物: 無 | 出餐時間: 正常 | 停車: 門口有機車停車格, 附近路邊也有停車格 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.4267021386204!2d120.450154174784!3d23.481135399061326!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e95edc5a11785%3A0xc559acef1e818b5c!2z56eY5pu45bqXIE1lZXQgc3RvcmU!5e0!3m2!1szh-TW!2stw!4v1746813525495!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.465662617831654" data-lng="120.46369842417236" data-type="modern" data-pet="no" data-parking="bad">
+                                <h4>解圖咖啡</h4>
+                                <p>地址: 嘉義市東區宣信街64號
+                                <br>營業時間: 09:00~18:30, 星期四休息 | 有寵物: 無 | 出餐時間: 正常 | 停車: 不好 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.8625631438663!2d120.46111277478337!3d23.465421499658184!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e95e64f0f74b5%3A0x31b98da9d2b469bb!2z6Kej5ZyW5ZKW5ZWhIC3miYvmspblkpbllaHvvIbmiYvmj4npurXljIXvvIbmiYvkvZzom4vns5XvvIbmiYvlt6XppIXkub7vvIbkuIvljYjojLYm6LyV6aOf!5e0!3m2!1szh-TW!2stw!4v1746813449465!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="cafe-item" data-lat="23.474943910070245" data-lng="120.46942049533698" data-type="modern" data-pet="yes" data-parking="good">
+                                <h4>好久不見的咖啡店</h4>
+                                <p>地址: 嘉義市東區立德街83巷15號
+                                <br>營業時間: 10:00~17:00, 星期一休息 | 有寵物: 寵物友善 | 出餐時間: 正常 | 停車: 好, 外面有空地可以停車 | 低消: 有
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.601882340602!2d120.46684557478365!3d23.474820899301267!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346e956b9a37b7ab%3A0x689457495ff50a78!2z5aW95LmF5LiN6KaL55qE5ZKW5ZWh5bqXLeeRquW-t-iTruWwiOargyBNYWRlbGVpbmVzIENvdW50ZXI!5e0!3m2!1szh-TW!2stw!4v1746813345590!5m2!1szh-TW!2stw" width="450" height="150" style="border:0; display: block; margin: 0 auto;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                <!-- 可根據需要添加更多咖啡廳 -->
+            </div>
+            <div class="tab-pane fade" id="contact-tab-pane" role="tabpanel" aria-labelledby="contact-tab" tabindex="0">
+                <h3>包含的咖啡廳</h3>
+                <!-- 咖啡廳列表將由 JavaScript 動態生成 -->
+            </div>
+            <div class="tab-pane fade" id="location-tab-pane" role="tabpanel" aria-labelledby="location-tab" tabindex="0">
+                <h3>我現在的位置</h3>
+                <iframe src="https://www.google.com/maps/embed?pb=!1m10!1m8!1m3!1d29278.81317008436!2d120.39911979587667!3d23.465815202318435!3m2!1i1024!2i768!4f13.1!5e0!3m2!1szh-TW!2stw!4v1744877662962!5m2!1szh-TW!2stw" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                <h3>附近咖啡廳</h3>
+                
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 儲存使用者位置
+        let userLocation = null;
+
+        // 獲取使用者位置
+        function getLocation(callback) {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        userLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        const mapIframe = document.querySelector('#location-tab-pane iframe');
+                        if (mapIframe) {
+                            mapIframe.src = `https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=${userLocation.lat},${userLocation.lng}&zoom=15`;
+                        }
+                        if (callback) callback();
+                    },
+                    (error) => {
+                        showError(error);
+                        userLocation = { lat: 23.465815, lng: 120.399119 }; // 預設位置
+                        const mapIframe = document.querySelector('#location-tab-pane iframe');
+                        if (mapIframe) {
+                            mapIframe.src = `https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=${userLocation.lat},${userLocation.lng}&zoom=15`;
+                        }
+                        if (callback) callback();
+                    }
+                );
+            } else {
+                alert("您的瀏覽器不支援地理定位功能。");
+                userLocation = { lat: 23.465815, lng: 120.399119 };
+                const mapIframe = document.querySelector('#location-tab-pane iframe');
+                if (mapIframe) {
+                    mapIframe.src = `https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=${userLocation.lat},${userLocation.lng}&zoom=15`;
+                }
+                if (callback) callback();
+            }
+        }
+
+        // 錯誤處理
+        function showError(error) {
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    alert("使用者拒絕提供地理位置，將使用預設位置。");
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    alert("無法獲取位置資訊，將使用預設位置。");
+                    break;
+                case error.TIMEOUT:
+                    alert("獲取位置超時，將使用預設位置。");
+                    break;
+                case error.UNKNOWN_ERROR:
+                    alert("發生未知錯誤，將使用預設位置。");
+                    break;
+            }
+        }
+
+        // 計算距離（Haversine 公式）
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // 地球半徑（公里）
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c; // 回傳距離（公里）
+        }
+
+        // 篩選咖啡廳
+        function filterCafes() {
+            console.log('Filtering cafes with userLocation:', userLocation);
+            const distanceFilter = document.getElementById('distance')?.value || 'all';
+            const typeFilter = document.getElementById('type').value;
+            const petFilter = document.getElementById('pet').value;
+            const parkingFilter = document.getElementById('parking').value;
+            const cafeItems = document.querySelectorAll('#profile-tab-pane .cafe-item');
+
+            console.log('Filters:', { distance: distanceFilter, type: typeFilter, pet: petFilter, parking: parkingFilter });
+
+            cafeItems.forEach(item => {
+                const lat = parseFloat(item.getAttribute('data-lat'));
+                const lng = parseFloat(item.getAttribute('data-lng'));
+                const type = item.getAttribute('data-type') || '';
+                const pet = item.getAttribute('data-pet') || 'no';
+                const parking = item.getAttribute('data-parking') || 'bad';
+
+                let distanceMatch = true;
+                if (userLocation && !isNaN(lat) && !isNaN(lng)) {
+                    const distance = calculateDistance(userLocation.lat, userLocation.lng, lat, lng);
+                    distanceMatch = distanceFilter === 'all' || distance <= parseInt(distanceFilter);
+                    console.log(`Cafe ${item.querySelector('h4').textContent}: Distance ${distance.toFixed(2)}km, Match: ${distanceMatch}`);
+                }
+
+                const typeMatch = typeFilter === 'all' || type === typeFilter;
+                const petMatch = petFilter === 'all' || pet === petFilter;
+                const parkingMatch = parkingFilter === 'all' || parking === parkingFilter;
+
+                if (distanceMatch && typeMatch && petMatch && parkingMatch) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        }
+
+        // 頁面載入時初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 生成第二頁籤內容
+            const firstTabCafes = document.querySelectorAll('#profile-tab-pane .cafe-item');
+            const secondTabContainer = document.querySelector('#contact-tab-pane');
+            secondTabContainer.innerHTML = '<h3>包含的咖啡廳</h3>';
+
+            console.log('Generating second tab with', firstTabCafes.length, 'cafes');
+
+            firstTabCafes.forEach(cafe => {
+                const name = cafe.querySelector('h4').textContent;
+                const details = cafe.querySelector('p').innerHTML.split('<iframe')[0].trim();
+                const iframe = cafe.querySelector('iframe')?.outerHTML || '';
+                const dataType = cafe.getAttribute('data-type') || 'modern';
+                const dataPet = cafe.getAttribute('data-pet') || 'no';
+                const dataParking = cafe.getAttribute('data-parking') || 'bad';
+
+                const cafeItem = document.createElement('div');
+                cafeItem.classList.add('cafe-item');
+                cafeItem.setAttribute('data-type', dataType);
+                cafeItem.setAttribute('data-pet', dataPet);
+                cafeItem.setAttribute('data-parking', dataParking);
+                cafeItem.innerHTML = `
+                    <h4>${name}</h4>
+                    <p>${details}</p>
+                    ${iframe}
+                `;
+                secondTabContainer.appendChild(cafeItem);
+            });
+
+            // 生成第三頁籤咖啡廳列表
+            const locationCafeContainer = document.querySelector('#location-cafe-list');
+            locationCafeContainer.innerHTML = '';
+
+            console.log('Generating third tab with', firstTabCafes.length, 'cafes');
+
+            firstTabCafes.forEach(cafe => {
+                const name = cafe.querySelector('h4').textContent;
+                const details = cafe.querySelector('p').innerHTML.split('<iframe')[0].trim();
+                const iframe = cafe.querySelector('iframe')?.outerHTML || '';
+                const dataType = cafe.getAttribute('data-type') || 'modern';
+                const dataPet = cafe.getAttribute('data-pet') || 'no';
+                const dataParking = cafe.getAttribute('data-parking') || 'bad';
+
+                const cafeItem = document.createElement('div');
+                cafeItem.classList.add('cafe-item');
+                cafeItem.setAttribute('data-type', dataType);
+                cafeItem.setAttribute('data-pet', dataPet);
+                cafeItem.setAttribute('data-parking', dataParking);
+                cafeItem.innerHTML = `
+                    <h4>${name}</h4>
+                    <p>${details}</p>
+                    ${iframe}
+                `;
+                locationCafeContainer.appendChild(cafeItem);
+            });
+
+            // 初始化第一頁籤：顯示所有咖啡廳
+            const cafeItems = document.querySelectorAll('#profile-tab-pane .cafe-item');
+            console.log('Initializing first tab with', cafeItems.length, 'cafes');
+            cafeItems.forEach(item => item.classList.remove('hidden'));
+
+            // 獲取用戶位置（但不立即篩選）
+            getLocation(() => {
+                console.log('Location retrieved:', userLocation);
+            });
+
+            // 監聽頁籤切換
+            document.querySelectorAll('.nav-link').forEach(tab => {
+                tab.addEventListener('shown.bs.tab', () => {
+                    if (tab.id === 'profile-tab') {
+                        getLocation(() => filterCafes());
+                    } else if (tab.id === 'location-tab') {
+                        getLocation();
+                    }
+                });
+            });
+
+            // 監聽篩選條件變化
+            document.querySelectorAll('#distance, #type, #pet, #parking').forEach(select => {
+                select.addEventListener('change', filterCafes);
+            });
+        });
+    </script>
+</body>
+</html>
